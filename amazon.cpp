@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <fstream>
 #include <set>
@@ -7,6 +8,8 @@
 #include <algorithm>
 #include "product.h"
 #include "db_parser.h"
+#include "mydatastore.h"
+#include "datastore.h"
 #include "product_parser.h"
 #include "util.h"
 
@@ -29,7 +32,7 @@ int main(int argc, char* argv[])
      * Declare your derived DataStore object here replacing
      *  DataStore type to your derived type
      ****************/
-    DataStore ds;
+    MyDataStore ds;
 
 
 
@@ -66,6 +69,8 @@ int main(int argc, char* argv[])
     while(!done) {
         cout << "\nEnter command: " << endl;
         string line;
+        // vector<string> terms;
+        // hits = ds.search(terms, 1);
         getline(cin,line);
         stringstream ss(line);
         string cmd;
@@ -99,10 +104,53 @@ int main(int argc, char* argv[])
                 }
                 done = true;
             }
-	    /* Add support for other commands here */
-
-
-
+            else if (cmd == "ADD"){
+                string username;
+                long unsigned int hitNum;
+                if(ss >> username && ss >> hitNum){
+                    User* user = ds.getUserByUsername(username);
+                    if(user == nullptr){
+                        cout << "Invalid request" << endl;
+                        continue;
+                    }
+                    if(hitNum > 0 && hitNum <= hits.size()){
+                        hitNum--;
+                        ds.addCart(user, hits[hitNum]);
+                    }
+                    else{
+                        cout << "Invalid request" << endl;
+                    }
+                }
+                else{
+                    cout << "Invalid command" << endl;
+                }
+            }
+            else if (cmd == "VIEWCART"){
+                string username;
+                if(ss >> username){
+                    User* user = ds.getUserByUsername(username);
+                    if (user != nullptr){
+                         ds.viewCart(user);
+                    }
+                    else{
+                        cout << "Invalid username" << endl;
+                    }
+                }
+                else{
+                    cout << "Invalid command" << endl;
+                }
+            }
+            else if (cmd == "BUYCART"){
+                string username;
+                if(ss >> username){
+                User* user = ds.getUserByUsername(username);
+                if (user != nullptr){
+                    ds.buyCart(user);
+                }
+                else{
+                    cout << "Invalid username" << endl;
+                }
+            }
 
             else {
                 cout << "Unknown command" << endl;
@@ -110,7 +158,8 @@ int main(int argc, char* argv[])
         }
 
     }
-    return 0;
+}
+return 0;
 }
 
 void displayProducts(vector<Product*>& hits)
